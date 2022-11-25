@@ -23,6 +23,9 @@ async function run() {
 			.db('computerZone')
 			.collection('MainCategoryData');
 		const usersCollection = client.db('computerZone').collection('users');
+		const allProductCollection = client
+			.db('computerZone')
+			.collection('allProduct');
 
 		app.get('/mainCategory', async (req, res) => {
 			const query = {};
@@ -49,6 +52,7 @@ async function run() {
 			const result = await usersCollection.insertOne(user);
 			res.send(result);
 		});
+
 		app.get('/users/admin/:email', async (req, res) => {
 			const email = req.params.email;
 			const query = { email };
@@ -57,16 +61,22 @@ async function run() {
 		});
 
 		app.get('/seller', async (req, res) => {
-			// const role = req.params.role;
 			const query = { role: 'seller' };
 			const users = await usersCollection.find(query).toArray();
 			res.send(users);
 		});
 		app.get('/buyer', async (req, res) => {
-			// const role = req.params.role;
 			const query = { role: 'buyer' };
 			const users = await usersCollection.find(query).toArray();
 			res.send(users);
+		});
+
+		// Products api
+
+		app.post('/allProduct', async (req, res) => {
+			const product = req.body;
+			const result = await allProductCollection.insertOne(product);
+			res.send(result);
 		});
 	} finally {
 	}
