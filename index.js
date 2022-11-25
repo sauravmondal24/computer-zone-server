@@ -9,10 +9,6 @@ app.use(cors());
 app.use(express.json());
 
 // Database Connection
-
-// user: computerZone
-// pass: mvD2qTHDS5BIj2oA
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xzekhbt.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
 	useNewUrlParser: true,
