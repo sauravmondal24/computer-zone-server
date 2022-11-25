@@ -59,13 +59,19 @@ async function run() {
 			const user = await usersCollection.findOne(query);
 			res.send({ isAdmin: user?.role === 'admin' });
 		});
+		app.get('/users/seller/:email', async (req, res) => {
+			const email = req.params.email;
+			const query = { email };
+			const user = await usersCollection.findOne(query);
+			res.send({ isSeller: user?.role === 'seller' });
+		});
 
-		app.get('/seller', async (req, res) => {
+		app.get('/users/seller', async (req, res) => {
 			const query = { role: 'seller' };
 			const users = await usersCollection.find(query).toArray();
 			res.send(users);
 		});
-		app.get('/buyer', async (req, res) => {
+		app.get('/users/buyer', async (req, res) => {
 			const query = { role: 'buyer' };
 			const users = await usersCollection.find(query).toArray();
 			res.send(users);
@@ -73,11 +79,46 @@ async function run() {
 
 		// Products api
 
-		app.post('/allProduct', async (req, res) => {
+		app.post('/addProduct', async (req, res) => {
 			const product = req.body;
 			const result = await allProductCollection.insertOne(product);
 			res.send(result);
 		});
+
+		// app.get('/myProducts', async (req, res) => {
+		// 	const query = {};
+		// 	const result = await allProductCollection.find(query).toArray();
+		// 	res.send(result);
+		// });
+
+		app.get('/myProducts/:category', async (req, res) => {
+			const filter = req.params.category;
+			const query = { category: filter };
+			const appleProduct = await allProductCollection.find(query).toArray();
+			res.send(appleProduct);
+		});
+		app.get('/myProducts', async (req, res) => {
+			const seller = req.query.seller;
+			console.log(seller);
+			// console.log(filter);
+			if (seller) {
+				const filter = { seller: seller };
+				const appleProduct = await allProductCollection.find(filter).toArray();
+				res.send(appleProduct);
+			}
+			const query = {};
+			const result = await allProductCollection.find(query).toArray();
+			res.send(result);
+		});
+
+		// app.get('/myProducts', async (req, res) => {
+		// 	const query = req.params.seller;
+		// 	console.log(query);
+		// 	// console.log(filter);
+		// 	const filter = { seller: query };
+		// 	const appleProduct = await allProductCollection.find(filter).toArray();
+		// 	res.send(appleProduct);
+		// });
 	} finally {
 	}
 }
