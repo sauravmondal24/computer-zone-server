@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -129,6 +129,13 @@ async function run() {
 		app.get('/buyerOrder', async (req, res) => {
 			const query = {};
 			const result = await buyerOrdersCollection.find(query).toArray();
+			res.send(result);
+		});
+
+		app.delete('/buyerOrder/:id', async (req, res) => {
+			const id = req.params.id;
+			const filter = { _id: ObjectId(id) };
+			const result = await buyerOrdersCollection.deleteOne(filter);
 			res.send(result);
 		});
 	} finally {
