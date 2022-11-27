@@ -80,6 +80,12 @@ async function run() {
 			res.send(users);
 		});
 
+		// app.get('/users/buyer', async (req, res) => {
+		// 	const query = { role: 'buyer' };
+		// 	const users = await usersCollection.find(query).toArray();
+		// 	res.send(users);
+		// });
+
 		// Products api
 
 		app.post('/addProduct', async (req, res) => {
@@ -117,6 +123,12 @@ async function run() {
 		app.post('/buyerOrders', async (req, res) => {
 			const orders = req.body;
 			const result = await buyerOrdersCollection.insertOne(orders);
+			res.send(result);
+		});
+
+		app.get('/buyerOrder', async (req, res) => {
+			const query = {};
+			const result = await buyerOrdersCollection.find(query).toArray();
 			res.send(result);
 		});
 	} finally {
