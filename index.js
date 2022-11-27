@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 app.use(cors());
 app.use(express.json());
@@ -74,10 +75,24 @@ async function run() {
 			const users = await usersCollection.find(query).toArray();
 			res.send(users);
 		});
+
+		app.delete('/users/seller/:id', async (req, res) => {
+			const id = req.params.id;
+			const filter = { _id: ObjectId(id) };
+			const result = await usersCollection.deleteOne(filter);
+			res.send(result);
+		});
 		app.get('/users/buyer', async (req, res) => {
 			const query = { role: 'buyer' };
 			const users = await usersCollection.find(query).toArray();
 			res.send(users);
+		});
+
+		app.delete('/users/buyer/:id', async (req, res) => {
+			const id = req.params.id;
+			const filter = { _id: ObjectId(id) };
+			const result = await usersCollection.deleteOne(filter);
+			res.send(result);
 		});
 
 		// app.get('/users/buyer', async (req, res) => {
@@ -137,6 +152,29 @@ async function run() {
 			const filter = { _id: ObjectId(id) };
 			const result = await buyerOrdersCollection.deleteOne(filter);
 			res.send(result);
+		});
+
+		app.get('/buyerOrders/:id', async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: ObjectId(id) };
+			const order = await buyerOrdersCollection.findOne(query);
+			res.send(order);
+		});
+
+		// Stripe Payment system
+		app.post('/create-payment-intent', async (req, res) => {
+			const buyerOrders = req.body;
+			const price = buyerOrders.price;
+			const amount = price * 100;
+
+			const paymentIntent = await stripe.paymentIntents.create({
+				currency: 'usd',
+				amount: amount,
+				payment_method_types: ['card']
+			});
+			res.send({
+				clientSecret: paymentIntent.client_secret
+			});
 		});
 	} finally {
 	}
