@@ -20,6 +20,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
 	try {
+		// All collection
 		const mainCategoryCollection = client
 			.db('computerZone')
 			.collection('MainCategoryData');
@@ -30,6 +31,9 @@ async function run() {
 		const buyerOrdersCollection = client
 			.db('computerZone')
 			.collection('buyerOrders');
+		const paymentsCollection = client.db('computerZone').collection('payments');
+
+		// Category API
 
 		app.get('/mainCategory', async (req, res) => {
 			const query = {};
@@ -37,19 +41,7 @@ async function run() {
 			res.send(option);
 		});
 
-		// app.get('/jwt', async (req, res) => {
-		// 	const email = req.query.email;
-		// 	const query = { email: email };
-		// 	const user = await usersCollection.findOne(query);
-		// 	if (user) {
-		// 		const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, {
-		// 			expiresIn: '1h'
-		// 		});
-		// 		return res.send({ accessToken: token });
-		// 	}
-		// 	console.log(user);
-		// 	res.status(403).send({ accessToken: '' });
-		// });
+		// User API
 
 		app.post('/users', async (req, res) => {
 			const user = req.body;
@@ -57,12 +49,16 @@ async function run() {
 			res.send(result);
 		});
 
+		// Admin role verify
+
 		app.get('/users/admin/:email', async (req, res) => {
 			const email = req.params.email;
 			const query = { email };
 			const user = await usersCollection.findOne(query);
 			res.send({ isAdmin: user?.role === 'admin' });
 		});
+
+		// Seller API
 		app.get('/users/seller/:email', async (req, res) => {
 			const email = req.params.email;
 			const query = { email };
@@ -82,6 +78,7 @@ async function run() {
 			const result = await usersCollection.deleteOne(filter);
 			res.send(result);
 		});
+		// Buyer API
 		app.get('/users/buyer', async (req, res) => {
 			const query = { role: 'buyer' };
 			const users = await usersCollection.find(query).toArray();
@@ -94,26 +91,14 @@ async function run() {
 			const result = await usersCollection.deleteOne(filter);
 			res.send(result);
 		});
-
-		// app.get('/users/buyer', async (req, res) => {
-		// 	const query = { role: 'buyer' };
-		// 	const users = await usersCollection.find(query).toArray();
-		// 	res.send(users);
-		// });
-
-		// Products api
-
+		// Add product API
 		app.post('/addProduct', async (req, res) => {
 			const product = req.body;
 			const result = await allProductCollection.insertOne(product);
 			res.send(result);
 		});
 
-		// app.get('/myProducts', async (req, res) => {
-		// 	const query = {};
-		// 	const result = await allProductCollection.find(query).toArray();
-		// 	res.send(result);
-		// });
+		// ALl Products API
 
 		app.get('/myProducts/:category', async (req, res) => {
 			const filter = req.params.category;
@@ -175,6 +160,24 @@ async function run() {
 			res.send({
 				clientSecret: paymentIntent.client_secret
 			});
+		});
+
+		app.post('/payments', async (req, res) => {
+			const payment = req.body;
+			const result = await paymentsCollection.insertOne(payment);
+			const id = payment.orderId;
+			const filter = { _id: ObjectId(id) };
+			const updatedDoc = {
+				$set: {
+					paid: true,
+					transactionId: payment.transactionId
+				}
+			};
+			const updatedResult = await buyerOrdersCollection.updateOne(
+				filter,
+				updatedDoc
+			);
+			res.send(result);
 		});
 	} finally {
 	}
